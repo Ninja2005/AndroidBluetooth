@@ -6,6 +6,7 @@ import android.view.View;
 
 import com.hqumath.demo.base.BaseActivity;
 import com.hqumath.demo.databinding.ActivityMainBinding;
+import com.hqumath.demo.ui.bluetooth.BluetoothClassicActivity;
 import com.hqumath.demo.ui.repos.MyReposActivity;
 
 /**
@@ -27,8 +28,8 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void initListener() {
-        binding.btnMyRepos.setOnClickListener(v -> {
-            startActivity(new Intent(mContext, MyReposActivity.class));
+        binding.btnBluetoothClassic.setOnClickListener(v -> {
+            startActivity(new Intent(mContext, BluetoothClassicActivity.class));
         });
     }
 

@@ -1,2 +1,2 @@
 # AndroidDemo
-一个简单的 Demo
+经典蓝牙和低功耗蓝牙学习

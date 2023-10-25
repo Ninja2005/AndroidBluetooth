@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
 
 /**
  * 常用工具类
@@ -51,6 +52,10 @@ public class CommonUtil {
 
     public static void toast(String s) {
         Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
+    }
+
+    public static void toast(@StringRes int resId) {
+        Toast.makeText(context, resId, Toast.LENGTH_SHORT).show();
     }
 
     public static void showKeyboard(Activity activity, EditText editText) {

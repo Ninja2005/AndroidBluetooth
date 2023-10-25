@@ -78,7 +78,7 @@
         </activity>
 
         <activity
-            android:name="com.hqumath.demo.ui.repos.MyReposActivity"
+            android:name="com.hqumath.demo.ui.bluetooth.BluetoothClassicActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|navigation|keyboard|keyboardHidden|touchscreen|fontScale"
             android:exported="false"
             android:screenOrientation="portrait" />
