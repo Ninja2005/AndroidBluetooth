@@ -1,5 +1,6 @@
 package com.hqumath.demo.bluetooth;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -9,11 +10,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.text.TextUtils;
+import android.os.Build;
+import android.provider.Settings;
 
 import com.hqumath.demo.R;
 import com.hqumath.demo.utils.CommonUtil;
+import com.hqumath.demo.utils.PermissionUtil;
+import com.yanzhenjie.permission.AndPermission;
 
 /**
  * ****************************************************************
@@ -53,6 +56,35 @@ public class BluetoothClassic {
     }
 
     /**
+     * 扫描&检查权限
+     */
+    @SuppressLint("WrongConstant")
+    public void scanWithPermission() {
+        //申请权限
+        String[] allPermission;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            allPermission = new String[]{Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT};
+        } else {
+            allPermission = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
+        }
+        if (PermissionUtil.checkPermission(mContext, allPermission)) {
+            scan();
+        } else {
+            AndPermission.with(mContext)
+                    .runtime()
+                    .permission(allPermission)
+                    .onGranted((permissions) -> {
+                        scan();
+                    })
+                    .onDenied((permissions) -> {//关闭权限且不再询问
+                        if (AndPermission.hasAlwaysDeniedPermission(mContext, permissions)) {
+                            PermissionUtil.showSettingDialog(mContext, permissions);
+                        }
+                    }).start();
+        }
+    }
+
+    /**
      * 扫描
      */
     @SuppressLint("MissingPermission")
@@ -64,6 +96,14 @@ public class BluetoothClassic {
         if (!bluetoothAdapter.isEnabled()) {//打开蓝牙
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             mContext.startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+            CommonUtil.toast(R.string.bluetooth_not_open);
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT < Build.VERSION_CODES.S
+                && !CommonUtil.isGpsOpen()) {//打开定位
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            mContext.startActivityForResult(intent, REQUEST_ENABLE_GPS);
+            CommonUtil.toast(R.string.location_not_open);
             return;
         }
     }
@@ -71,6 +111,7 @@ public class BluetoothClassic {
     public void release() {
         mContext.unregisterReceiver(receiver);
     }
+
 
     /**
      * 广播接收。扫描、配对、连接

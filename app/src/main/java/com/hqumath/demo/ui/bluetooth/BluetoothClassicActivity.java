@@ -8,7 +8,7 @@ import android.view.View;
 import com.hqumath.demo.R;
 import com.hqumath.demo.base.BaseActivity;
 import com.hqumath.demo.bluetooth.BluetoothClassic;
-import com.hqumath.demo.databinding.ActivityMainBinding;
+import com.hqumath.demo.databinding.ActivityBluetoothClassicBinding;
 import com.hqumath.demo.utils.CommonUtil;
 
 /**
@@ -20,19 +20,20 @@ import com.hqumath.demo.utils.CommonUtil;
  * ****************************************************************
  */
 public class BluetoothClassicActivity extends BaseActivity {
-    private ActivityMainBinding binding;
+    private ActivityBluetoothClassicBinding binding;
     private BluetoothClassic bluetoothClassic;//蓝牙手柄
 
     @Override
     protected View initContentView(Bundle savedInstanceState) {
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        binding = ActivityBluetoothClassicBinding.inflate(getLayoutInflater());
         return binding.getRoot();
     }
 
     @Override
     protected void initListener() {
-
-
+        binding.btnScan.setOnClickListener(v -> {
+            bluetoothClassic.scanWithPermission();
+        });
     }
 
     @Override
@@ -58,18 +59,14 @@ public class BluetoothClassicActivity extends BaseActivity {
             if (resultCode == Activity.RESULT_OK) {//蓝牙已打开
                 bluetoothClassic.scan();
             } else {
-                CommonUtil.toast(getString(R.string.bluetooth_not_open));
+                CommonUtil.toast(R.string.bluetooth_not_open);
             }
         } else if (requestCode == BluetoothClassic.REQUEST_ENABLE_GPS) {
-            /*if (Utils.isGpsOpen(mContext)) {
-                bluetoothHelperGamepad.scan();
+            if (CommonUtil.isGpsOpen()) {
+                bluetoothClassic.scan();
             } else {
-                CommonUtil.toast(getString(R.string.controller_location_not_open));
-                //打开蓝牙遥控模式失败, 恢复方向盘模式
-                if (controllerSwitchDialog != null) {
-                    controllerSwitchDialog.hideLoadingWirelessGamepad();
-                }
-            }*/
+                CommonUtil.toast(R.string.location_not_open);
+            }
         }
     }
 }

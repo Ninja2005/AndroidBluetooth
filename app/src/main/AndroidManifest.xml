@@ -32,7 +32,7 @@
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s" />
     <!--蓝牙 广播，被发现-->
-    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <!--<uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />-->
     <!--蓝牙 连接、通信-->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 

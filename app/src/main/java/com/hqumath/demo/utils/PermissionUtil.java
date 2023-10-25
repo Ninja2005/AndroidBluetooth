@@ -3,9 +3,12 @@ package com.hqumath.demo.utils;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.Settings;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
+
 import android.text.TextUtils;
 import com.hqumath.demo.R;
 import com.yanzhenjie.permission.RequestExecutor;
@@ -84,15 +87,17 @@ public class PermissionUtil {
     }
 
     /**
-     * 检查权限
-     * @return 是否授权
+     * 检查权限是否授权
+     *
+     * @param permissions
+     * @return
      */
-    /*public static boolean check(Activity activity, String permission) {
-        boolean isGranted =
-                ActivityCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED;
-        if (!isGranted) {
-            ActivityCompat.requestPermissions(activity, new String[]{permission}, REQUEST_PERMISSION_CODE);
+    public static boolean checkPermission(Context context, String... permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
         }
-        return isGranted;
-    }*/
+        return true;
+    }
 }
