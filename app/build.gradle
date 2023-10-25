@@ -1,0 +1,60 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdk 31
+
+    defaultConfig {
+        applicationId "com.hqumath.demo"
+        minSdk 21
+        //noinspection ExpiredTargetSdkVersion
+        targetSdk 31
+        versionCode 20210902
+        versionName "2.1"
+        //multiDexEnabled true
+    }
+    buildFeatures {
+        viewBinding = true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    //配置自定义打包名称
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            def fileName
+            if (variant.buildType.name.equals('release')) {
+                fileName = "AndroidDemo_${variant.mergedFlavor.versionName}_${variant.mergedFlavor.versionCode}.apk"
+            } else if (variant.buildType.name.equals('debug')) {
+                fileName = "AndroidDemo_${variant.mergedFlavor.versionName}_debug_${variant.mergedFlavor.versionCode}.apk"
+            }
+            outputFileName = fileName
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'com.google.android.material:material:1.6.1'
+    //rxjava
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.9'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    //network
+    implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+    implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'//数据解析器
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'//网络请求适配器
+    //权限获取
+    implementation 'com.yanzhenjie:permission:2.0.3'
+    //屏幕适配
+    implementation 'com.github.JessYanCoding:AndroidAutoSize:v1.2.1'
+    //下拉刷新
+    implementation  'com.scwang.smart:refresh-layout-kernel:2.0.3'      //核心必须依赖
+    implementation  'com.scwang.smart:refresh-header-classics:2.0.3'    //经典刷新头
+}

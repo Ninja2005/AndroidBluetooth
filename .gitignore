@@ -1,0 +1,11 @@
+/.idea
+/.gradle
+/build
+/captures
+/local.properties
+/hqumaths_keystore.properties
+/*.iml
+/*.rar
+/.DS_Store
+/*.apk
+/.externalNativeBuild

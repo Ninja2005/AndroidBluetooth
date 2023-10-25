@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!--应用专属外部存储空间文件 /storage/emulated/0/Android/data/packname/files-->
+    <external-files-path
+        name="my_images"
+        path="images/" />
+    <external-files-path
+        name="my_docs"
+        path="docs/" />
+
+</paths>

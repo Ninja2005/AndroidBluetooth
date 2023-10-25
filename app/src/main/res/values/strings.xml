@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">AndroidDemo</string>
+
+    <!--登录界面-->
+    <string name="user_name">用户名</string>
+    <string name="password">密码</string>
+    <string name="login">登录</string>
+    <string name="user_name_warning">用户名不正确!</string>
+    <string name="password_warning">密码不正确!</string>
+
+    <!--列表界面-->
+    <string name="my_repos">我的仓库</string>
+
+    <!--权限获取-->
+    <string name="permission_title">提示</string>
+    <string name="permission_failed_title">权限申请失败</string>
+    <string name="permission_failed_setting">去设置</string>
+    <string name="permission_failed_cancel">取消</string>
+    <string name="permission_always_failed_message">我们需要的一些权限被您拒绝，请您到设置页面手动授权，否则功能无法正常使用！\n\n%1$s</string>
+    <string name="permission_install_failed_message">请您授予安装未知应用权限，否则无法安装app</string>
+
+    <!--网络请求报错-->
+    <string name="network_error">网络错误</string>
+    <string name="network_parse_error">解析错误</string>
+    <string name="network_connect_error">网络连接失败</string>
+    <string name="network_ssl_error">证书验证失败</string>
+    <string name="network_connect_timeout">连接超时</string>
+    <string name="network_unknown_error">未知错误…</string>
+
+</resources>
