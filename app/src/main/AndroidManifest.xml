@@ -1,11 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.hqumath.demo">
 
     <!--网络权限-->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--蓝牙 API30及以下需要申请4个权限，API31及以上时权限列表将不会列出这些权限-->
+    <!--蓝牙 连接、通信-->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <!--蓝牙 扫描、设置-->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <!--蓝牙 API30及以下需要定位权限 -->
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
+
+    <!--蓝牙 API31及以上需要申请3个权限-->
+    <!--蓝牙 扫描，可不申请定位权限-->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <!--蓝牙 广播，被发现-->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <!--蓝牙 连接、通信-->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
     <!--权限获取库-->
     <permission-group android:name="${applicationId}.andpermission" />
 
