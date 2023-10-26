@@ -12,11 +12,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.provider.Settings;
+import android.text.TextUtils;
 
 import com.hqumath.demo.R;
 import com.hqumath.demo.utils.CommonUtil;
 import com.hqumath.demo.utils.PermissionUtil;
 import com.yanzhenjie.permission.AndPermission;
+
+import java.util.Set;
 
 /**
  * ****************************************************************
@@ -33,6 +36,7 @@ public class BluetoothClassic {
 
     private Activity mContext;
     private BluetoothAdapter bluetoothAdapter;
+    private BluetoothClassic.OnBluetoothListener onBluetoothListener;
 
     public BluetoothClassic() {
 
@@ -53,6 +57,10 @@ public class BluetoothClassic {
         intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         intentFilter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
         mContext.registerReceiver(receiver, intentFilter);
+    }
+
+    public void setOnBluetoothListener(BluetoothClassic.OnBluetoothListener onBluetoothListener) {
+        this.onBluetoothListener = onBluetoothListener;
     }
 
     /**
@@ -106,20 +114,84 @@ public class BluetoothClassic {
             CommonUtil.toast(R.string.location_not_open);
             return;
         }
+        //查询已配对设备
+        if (onBluetoothListener != null)
+            onBluetoothListener.onGetBondedDevices(bluetoothAdapter.getBondedDevices());
+        //扫描 大概12s,扫描中不能立即重新扫描
+        if (!bluetoothAdapter.isDiscovering()) {
+            if (onBluetoothListener != null)
+                onBluetoothListener.onScanStart();
+            bluetoothAdapter.startDiscovery();
+        }
     }
 
     public void release() {
         mContext.unregisterReceiver(receiver);
     }
 
+    //判断设备是否连接
+    public static boolean isDeviceConnected(BluetoothDevice device) {
+        boolean isConnected = false;
+        try {
+            isConnected = (boolean) device.getClass().getMethod("isConnected").invoke(device);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return isConnected;
+    }
 
     /**
      * 广播接收。扫描、配对、连接
      */
+    @SuppressLint("MissingPermission")
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
-
-
+            String action = intent.getAction();
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {//扫描-发现设备
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device != null && !TextUtils.isEmpty(device.getName())) {
+                    if (onBluetoothListener != null)
+                        onBluetoothListener.onScanResult(device);
+                }
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {//扫描结束
+                if (onBluetoothListener != null)
+                    onBluetoothListener.onScanFinish();
+            } else if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {//配对状态变化
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                int bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
+                if (device == null) {
+                    return;
+                }
+                if (onBluetoothListener != null)
+                    onBluetoothListener.onBoundStateChanged(device, bondState);
+            } else if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {//连接状态变化
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                int connectState = intent.getIntExtra(BluetoothAdapter.EXTRA_CONNECTION_STATE, BluetoothAdapter.ERROR);
+                if (device == null) {
+                    return;
+                }
+                if (connectState == BluetoothAdapter.STATE_DISCONNECTED || connectState == BluetoothAdapter.STATE_CONNECTED) {
+                    if (onBluetoothListener != null)
+                        onBluetoothListener.onConnectionStateChanged();
+                }
+            }
         }
     };
+
+    /**
+     * 回调
+     */
+    public interface OnBluetoothListener {
+        void onGetBondedDevices(Set<BluetoothDevice> pairedDevices);//刷新已配对列表
+
+        void onScanResult(BluetoothDevice device);//扫描
+
+        void onScanStart();
+
+        void onScanFinish();
+
+        void onBoundStateChanged(BluetoothDevice device, int bondState);
+
+        void onConnectionStateChanged();
+    }
 }
