@@ -2,9 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="16dp"
+    android:layout_height="20dp"
     android:layout_marginStart="10dp"
     android:layout_marginEnd="10dp"
+    android:layout_marginTop="5dp"
     android:background="@drawable/selector_bg_bluetooth_device"
     android:focusable="true"
     android:gravity="center_vertical"
@@ -18,16 +19,16 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:textColor="@color/black"
-        android:textSize="12sp"
+        android:textSize="14sp"
         tools:text="设备名称" />
 
     <TextView
         android:id="@+id/tvAddress"
-        android:layout_width="100dp"
+        android:layout_width="120dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:textColor="@color/black"
-        android:textSize="12sp"
+        android:textSize="14sp"
         tools:text="78:51:31:90:00" />
 
     <TextView
@@ -36,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:textColor="@color/black"
-        android:textSize="12sp"
+        android:textSize="14sp"
         tools:text="已连接" />
 
 </LinearLayout>

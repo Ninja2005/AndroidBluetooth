@@ -15,11 +15,13 @@ import android.provider.Settings;
 import android.text.TextUtils;
 
 import com.hqumath.demo.R;
+import com.hqumath.demo.app.AppExecutors;
 import com.hqumath.demo.utils.CommonUtil;
 import com.hqumath.demo.utils.PermissionUtil;
 import com.yanzhenjie.permission.AndPermission;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ****************************************************************
@@ -125,6 +127,26 @@ public class BluetoothClassic {
         }
     }
 
+    /**
+     * 连接设备。
+     * 已配对的取消配对，配对后自动连接。
+     */
+    @SuppressLint("MissingPermission")
+    public void connectDevice(BluetoothDevice device) {
+        if (bluetoothAdapter != null) {//取消扫描
+            bluetoothAdapter.cancelDiscovery();
+        }
+        CommonUtil.toast(R.string.bluetooth_is_connecting);
+        if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
+            removeBondDevice(device);//取消配对
+            AppExecutors.getInstance().scheduledWork().schedule(() -> {
+                device.createBond();//延时配对
+            }, 1, TimeUnit.SECONDS);
+        } else if (device.getBondState() == BluetoothDevice.BOND_NONE) {
+            device.createBond();//配对
+        }
+    }
+
     public void release() {
         mContext.unregisterReceiver(receiver);
     }
@@ -138,6 +160,17 @@ public class BluetoothClassic {
             e.printStackTrace();
         }
         return isConnected;
+    }
+
+    //解绑设备
+    public static boolean removeBondDevice(BluetoothDevice device) {
+        boolean state = false;
+        try {
+            state = (boolean) device.getClass().getMethod("removeBond").invoke(device);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return state;
     }
 
     /**

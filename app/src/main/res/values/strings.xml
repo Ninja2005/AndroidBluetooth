@@ -15,6 +15,23 @@
     <string name="bluetooth_not_support">设备不支持蓝牙</string>
     <string name="bluetooth_not_open">请开启蓝牙</string>
     <string name="location_not_open">请开启定位</string>
+    <string name="bluetooth_is_connecting">正在连接设备…</string>
+    <string name="bluetooth_disconnect">是否断开与设备的连接？</string>
+
+    <!--通用提示-->
+    <string name="tips_click_fast">点击速度太快了</string>
+
+    <!--通用弹窗-->
+    <string name="tips">提示</string>
+    <string name="button_ok">确定</string>
+    <string name="button_go">确定</string>
+    <string name="button_cancel">取消</string>
+    <string name="button_ignore">忽略</string>
+    <string name="button_exit">退出</string>
+    <string name="button_YES">是</string>
+    <string name="button_NO">否</string>
+    <string name="button_turn_on">开启</string>
+    <string name="button_reject">拒绝</string>
 
     <!--权限获取-->
     <string name="permission_title">提示</string>

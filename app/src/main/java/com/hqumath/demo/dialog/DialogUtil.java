@@ -5,6 +5,8 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import androidx.annotation.StringRes;
+
 import com.hqumath.demo.R;
 import com.hqumath.demo.databinding.DialogCommonBinding;
 
@@ -46,20 +48,22 @@ public class DialogUtil extends Dialog {
         }*/
     }
 
-    public void setTitle(int resId) {
-        binding.tvTitle.setText(resId);
+    @Override
+    public void setTitle(CharSequence text) {
+        binding.tvTitle.setText(text);
     }
 
-    public void setTitle(String title) {
-        binding.tvTitle.setText(title);
+    @Override
+    public void setTitle(@StringRes int resId) {
+        setTitle(mContext.getText(resId));
     }
 
-    public void setMessage(int resId) {
-        binding.tvMessage.setText(resId);
+    public void setMessage(CharSequence text) {
+        binding.tvMessage.setText(text);
     }
 
-    public void setMessage(String message) {
-        binding.tvMessage.setText(message);
+    public void setMessage(@StringRes int resId) {
+        setMessage(mContext.getText(resId));
     }
 
     /**
@@ -68,7 +72,7 @@ public class DialogUtil extends Dialog {
      * @param text
      * @param listener
      */
-    public void setOneConfirmBtn(String text, View.OnClickListener listener) {
+    public void setOneConfirmBtn(CharSequence text, View.OnClickListener listener) {
         setOneOrTwoBtn(true);
         if (text != null) {
             binding.btnOneYes.setText(text);
@@ -80,7 +84,11 @@ public class DialogUtil extends Dialog {
         });
     }
 
-    public void setTwoConfirmBtn(String text, View.OnClickListener listener) {
+    public void setOneConfirmBtn(@StringRes int resId, View.OnClickListener listener) {
+        setOneConfirmBtn(mContext.getText(resId), listener);
+    }
+
+    public void setTwoConfirmBtn(CharSequence text, View.OnClickListener listener) {
         setOneOrTwoBtn(false);
         if (text != null) {
             binding.btnYes.setText(text);
@@ -92,7 +100,11 @@ public class DialogUtil extends Dialog {
         });
     }
 
-    public void setTwoCancelBtn(String text, View.OnClickListener listener) {
+    public void setTwoConfirmBtn(@StringRes int resId, View.OnClickListener listener) {
+        setTwoConfirmBtn(mContext.getText(resId), listener);
+    }
+
+    public void setTwoCancelBtn(CharSequence text, View.OnClickListener listener) {
         setOneOrTwoBtn(false);
         if (text != null) {
             binding.btnNo.setText(text);
@@ -102,6 +114,10 @@ public class DialogUtil extends Dialog {
             if (listener != null)
                 listener.onClick(v);
         });
+    }
+
+    public void setTwoCancelBtn(@StringRes int resId, View.OnClickListener listener) {
+        setTwoCancelBtn(mContext.getText(resId), listener);
     }
 
     /**

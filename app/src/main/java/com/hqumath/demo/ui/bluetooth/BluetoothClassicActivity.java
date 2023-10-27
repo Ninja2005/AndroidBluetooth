@@ -12,6 +12,7 @@ import com.hqumath.demo.base.BaseActivity;
 import com.hqumath.demo.base.BaseRecyclerAdapter;
 import com.hqumath.demo.bluetooth.BluetoothClassic;
 import com.hqumath.demo.databinding.ActivityBluetoothClassicBinding;
+import com.hqumath.demo.dialog.DialogUtil;
 import com.hqumath.demo.utils.CommonUtil;
 
 import java.util.ArrayList;
@@ -53,8 +54,7 @@ public class BluetoothClassicActivity extends BaseActivity {
         pairedAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                dismissLoading();//取消扫描
-//                onItemClickWireless(pairedDevices.get(position));
+                onClickBluetoothDevice(pairedDevices.get(position));
             }
         });
         binding.rvPaired.setAdapter(pairedAdapter);
@@ -63,8 +63,7 @@ public class BluetoothClassicActivity extends BaseActivity {
         availableAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                dismissLoading();//取消扫描
-//                onItemClickWireless(availableDevices.get(position));
+                onClickBluetoothDevice(availableDevices.get(position));
             }
         });
         binding.rvAvailable.setAdapter(availableAdapter);
@@ -114,12 +113,30 @@ public class BluetoothClassicActivity extends BaseActivity {
 
             @Override
             public void onBoundStateChanged(BluetoothDevice device, int bondState) {
-
+                if (bondState == BluetoothDevice.BOND_BONDED) {//配对成功
+                    if (!pairedDevices.contains(device)) {
+                        pairedDevices.add(device);
+                        pairedAdapter.notifyDataSetChanged();
+                    }
+                    if (availableDevices.contains(device)) {
+                        availableDevices.remove(device);
+                        availableAdapter.notifyDataSetChanged();
+                    }
+                } else if (bondState == BluetoothDevice.BOND_NONE) {//取消配对
+                    if (pairedDevices.contains(device)) {
+                        pairedDevices.remove(device);
+                        pairedAdapter.notifyDataSetChanged();
+                    }
+                    if (!availableDevices.contains(device)) {
+                        availableDevices.add(device);
+                        availableAdapter.notifyDataSetChanged();
+                    }
+                }
             }
 
             @Override
             public void onConnectionStateChanged() {
-
+                pairedAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -150,5 +167,26 @@ public class BluetoothClassicActivity extends BaseActivity {
                 CommonUtil.toast(R.string.location_not_open);
             }
         }
+    }
+
+    /**
+     * 点击蓝牙设备
+     *
+     * @param device
+     */
+    private void onClickBluetoothDevice(BluetoothDevice device) {
+        dismissLoading();//取消扫描
+        if (BluetoothClassic.isDeviceConnected(device)) {//已连接，提示断开连接
+            DialogUtil dialog = new DialogUtil(mContext);
+            dialog.setTitle(R.string.tips);
+            dialog.setMessage(R.string.bluetooth_disconnect);
+            dialog.setTwoConfirmBtn(R.string.button_ok, v1 -> {
+                BluetoothClassic.removeBondDevice(device);
+            });
+            dialog.setTwoCancelBtn(R.string.button_cancel, null);
+            dialog.show();
+            return;
+        }
+        bluetoothClassic.connectDevice(device);//连接
     }
 }
