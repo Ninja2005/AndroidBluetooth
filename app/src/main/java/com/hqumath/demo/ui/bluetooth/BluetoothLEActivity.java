@@ -1,7 +1,10 @@
 package com.hqumath.demo.ui.bluetooth;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -12,14 +15,11 @@ import com.hqumath.demo.base.BaseActivity;
 import com.hqumath.demo.base.BaseRecyclerAdapter;
 import com.hqumath.demo.bluetooth.BluetoothClassic;
 import com.hqumath.demo.bluetooth.BluetoothLE;
-import com.hqumath.demo.databinding.ActivityBluetoothClassicBinding;
 import com.hqumath.demo.databinding.ActivityBluetoothLeBinding;
-import com.hqumath.demo.dialog.DialogUtil;
 import com.hqumath.demo.utils.CommonUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * ****************************************************************
@@ -56,7 +56,7 @@ public class BluetoothLEActivity extends BaseActivity {
         connectedAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                //onClickBluetoothDevice(pairedDevices.get(position));
+                onClickBluetoothDevice(connectedDevices.get(position));
             }
         });
         binding.rvConnected.setAdapter(connectedAdapter);
@@ -65,7 +65,7 @@ public class BluetoothLEActivity extends BaseActivity {
         disconnectedAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                //onClickBluetoothDevice(availableDevices.get(position));
+                onClickBluetoothDevice(disconnectedDevices.get(position));
             }
         });
         binding.rvDisconnected.setAdapter(disconnectedAdapter);
@@ -106,25 +106,26 @@ public class BluetoothLEActivity extends BaseActivity {
             }
 
             @Override
-            public void onBoundStateChanged(BluetoothDevice device, int bondState) {
-
+            @SuppressLint("MissingPermission")
+            public void onConnectionStateChanged(BluetoothGatt gatt, int status, int newState) {
+                switch (newState) {
+                    case BluetoothProfile.STATE_CONNECTING:
+                        break;
+                    case BluetoothProfile.STATE_CONNECTED:
+                        gatt.discoverServices();//去发现服务
+                        break;
+                    case BluetoothProfile.STATE_DISCONNECTING:
+                        break;
+                    case BluetoothProfile.STATE_DISCONNECTED:
+                        break;
+                }
             }
 
             @Override
-            public void onConnectionStateChanged() {
+            public void onRead(byte[] data) {
 
             }
         });
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        //关闭蓝牙
-        if (bluetoothLE != null) {
-            bluetoothLE.release();
-            bluetoothLE = null;
-        }
     }
 
     @Override
@@ -151,8 +152,8 @@ public class BluetoothLEActivity extends BaseActivity {
      * @param device
      */
     private void onClickBluetoothDevice(BluetoothDevice device) {
-        dismissLoading();//取消扫描
-        if (BluetoothClassic.isDeviceConnected(device)) {//已连接，提示断开连接
+        //dismissLoading();//取消扫描
+        /*if (BluetoothClassic.isDeviceConnected(device)) {//已连接，提示断开连接
             DialogUtil dialog = new DialogUtil(mContext);
             dialog.setTitle(R.string.tips);
             dialog.setMessage(R.string.bluetooth_disconnect);
@@ -162,7 +163,7 @@ public class BluetoothLEActivity extends BaseActivity {
             dialog.setTwoCancelBtn(R.string.button_cancel, null);
             dialog.show();
             return;
-        }
-//        bluetoothLE.connectDevice(device);//连接
+        }*/
+        bluetoothLE.connectDevice(device);//连接
     }
 }

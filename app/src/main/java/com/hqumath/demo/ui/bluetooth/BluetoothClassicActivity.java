@@ -175,7 +175,6 @@ public class BluetoothClassicActivity extends BaseActivity {
      * @param device
      */
     private void onClickBluetoothDevice(BluetoothDevice device) {
-        dismissLoading();//取消扫描
         if (BluetoothClassic.isDeviceConnected(device)) {//已连接，提示断开连接
             DialogUtil dialog = new DialogUtil(mContext);
             dialog.setTitle(R.string.tips);
