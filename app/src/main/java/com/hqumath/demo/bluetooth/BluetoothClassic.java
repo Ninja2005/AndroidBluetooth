@@ -61,6 +61,10 @@ public class BluetoothClassic {
         mContext.registerReceiver(receiver, intentFilter);
     }
 
+    public void release() {
+        mContext.unregisterReceiver(receiver);
+    }
+
     public void setOnBluetoothListener(BluetoothClassic.OnBluetoothListener onBluetoothListener) {
         this.onBluetoothListener = onBluetoothListener;
     }
@@ -98,7 +102,7 @@ public class BluetoothClassic {
      * 扫描
      */
     @SuppressLint("MissingPermission")
-    public void scan() {
+    private void scan() {
         if ((bluetoothAdapter == null)) {
             CommonUtil.toast(R.string.bluetooth_not_support);
             return;
@@ -145,10 +149,6 @@ public class BluetoothClassic {
         } else if (device.getBondState() == BluetoothDevice.BOND_NONE) {
             device.createBond();//配对
         }
-    }
-
-    public void release() {
-        mContext.unregisterReceiver(receiver);
     }
 
     //判断设备是否连接

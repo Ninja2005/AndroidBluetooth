@@ -16,7 +16,9 @@ import com.hqumath.demo.base.BaseRecyclerAdapter;
 import com.hqumath.demo.bluetooth.BluetoothClassic;
 import com.hqumath.demo.bluetooth.BluetoothLE;
 import com.hqumath.demo.databinding.ActivityBluetoothLeBinding;
+import com.hqumath.demo.utils.ByteUtil;
 import com.hqumath.demo.utils.CommonUtil;
+import com.hqumath.demo.utils.LogUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +81,7 @@ public class BluetoothLEActivity extends BaseActivity {
 
             @Override
             public void onScanResult(BluetoothDevice device) {
-                //不添加重复的mac
+                //不添加重复的mac TODO
                 for (BluetoothDevice item : connectedDevices) {
                     if (item.getAddress().equals(device.getAddress())) {
                         return;
@@ -112,20 +114,35 @@ public class BluetoothLEActivity extends BaseActivity {
                     case BluetoothProfile.STATE_CONNECTING:
                         break;
                     case BluetoothProfile.STATE_CONNECTED:
-                        gatt.discoverServices();//去发现服务
                         break;
                     case BluetoothProfile.STATE_DISCONNECTING:
                         break;
                     case BluetoothProfile.STATE_DISCONNECTED:
+                        //TODO 断开连接更新UI
                         break;
                 }
             }
 
             @Override
-            public void onRead(byte[] data) {
+            public void onServicesDiscovered(boolean result) {
+                //TODO 发现服务成功或失败
+            }
 
+            @Override
+            public void onRead(byte[] data) {
+                LogUtil.d(BluetoothLE.TAG, "onRead: " + ByteUtil.bytesToHexWithSpace(data));
             }
         });
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        //关闭蓝牙
+        if (bluetoothLE != null) {
+            bluetoothLE.release();
+            bluetoothLE = null;
+        }
     }
 
     @Override
@@ -133,13 +150,13 @@ public class BluetoothLEActivity extends BaseActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == BluetoothClassic.REQUEST_ENABLE_BT) {
             if (resultCode == Activity.RESULT_OK) {//蓝牙已打开
-                bluetoothLE.scan();
+                bluetoothLE.scanWithPermission();
             } else {
                 CommonUtil.toast(R.string.bluetooth_not_open);
             }
         } else if (requestCode == BluetoothClassic.REQUEST_ENABLE_GPS) {
             if (CommonUtil.isGpsOpen()) {
-                bluetoothLE.scan();
+                bluetoothLE.scanWithPermission();
             } else {
                 CommonUtil.toast(R.string.location_not_open);
             }
@@ -152,8 +169,7 @@ public class BluetoothLEActivity extends BaseActivity {
      * @param device
      */
     private void onClickBluetoothDevice(BluetoothDevice device) {
-        //dismissLoading();//取消扫描
-        /*if (BluetoothClassic.isDeviceConnected(device)) {//已连接，提示断开连接
+        /*if (BluetoothClassic.isDeviceConnected(device)) {//已连接，提示断开连接 TODO
             DialogUtil dialog = new DialogUtil(mContext);
             dialog.setTitle(R.string.tips);
             dialog.setMessage(R.string.bluetooth_disconnect);

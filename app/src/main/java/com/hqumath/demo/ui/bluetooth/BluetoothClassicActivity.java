@@ -156,13 +156,13 @@ public class BluetoothClassicActivity extends BaseActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == BluetoothClassic.REQUEST_ENABLE_BT) {
             if (resultCode == Activity.RESULT_OK) {//蓝牙已打开
-                bluetoothClassic.scan();
+                bluetoothClassic.scanWithPermission();
             } else {
                 CommonUtil.toast(R.string.bluetooth_not_open);
             }
         } else if (requestCode == BluetoothClassic.REQUEST_ENABLE_GPS) {
             if (CommonUtil.isGpsOpen()) {
-                bluetoothClassic.scan();
+                bluetoothClassic.scanWithPermission();
             } else {
                 CommonUtil.toast(R.string.location_not_open);
             }
