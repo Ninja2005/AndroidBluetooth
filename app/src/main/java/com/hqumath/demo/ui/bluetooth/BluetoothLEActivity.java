@@ -11,7 +11,9 @@ import com.hqumath.demo.adapter.MyRecyclerAdapters;
 import com.hqumath.demo.base.BaseActivity;
 import com.hqumath.demo.base.BaseRecyclerAdapter;
 import com.hqumath.demo.bluetooth.BluetoothClassic;
+import com.hqumath.demo.bluetooth.BluetoothLE;
 import com.hqumath.demo.databinding.ActivityBluetoothClassicBinding;
+import com.hqumath.demo.databinding.ActivityBluetoothLeBinding;
 import com.hqumath.demo.dialog.DialogUtil;
 import com.hqumath.demo.utils.CommonUtil;
 
@@ -27,18 +29,18 @@ import java.util.Set;
  * 注意事项:
  * ****************************************************************
  */
-public class BluetoothClassicActivity extends BaseActivity {
-    private ActivityBluetoothClassicBinding binding;
-    private BluetoothClassic bluetoothClassic;//经典蓝牙
-    private MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter pairedAdapter;
-    private MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter availableAdapter;
+public class BluetoothLEActivity extends BaseActivity {
+    private ActivityBluetoothLeBinding binding;
+    private BluetoothLE bluetoothLE;//低功耗蓝牙
+    private MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter connectedAdapter;
+    private MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter disconnectedAdapter;
 
-    private List<BluetoothDevice> pairedDevices = new ArrayList<>();//已配对设备列表
-    private List<BluetoothDevice> availableDevices = new ArrayList<>();//可用设备列表
+    private List<BluetoothDevice> connectedDevices = new ArrayList<>();//已配对设备列表
+    private List<BluetoothDevice> disconnectedDevices = new ArrayList<>();//可用设备列表
 
     @Override
     protected View initContentView(Bundle savedInstanceState) {
-        binding = ActivityBluetoothClassicBinding.inflate(getLayoutInflater());
+        binding = ActivityBluetoothLeBinding.inflate(getLayoutInflater());
         return binding.getRoot();
     }
 
@@ -46,64 +48,56 @@ public class BluetoothClassicActivity extends BaseActivity {
     protected void initListener() {
         binding.btnScan.setOnClickListener(v -> {
             showLoading();
-            bluetoothClassic.scanWithPermission();
+            bluetoothLE.scanWithPermission();
         });
 
         //已配对设备
-        pairedAdapter = new MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter(mContext, pairedDevices);
-        pairedAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
+        connectedAdapter = new MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter(mContext, connectedDevices);
+        connectedAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                onClickBluetoothDevice(pairedDevices.get(position));
+                //onClickBluetoothDevice(pairedDevices.get(position));
             }
         });
-        binding.rvPaired.setAdapter(pairedAdapter);
+        binding.rvConnected.setAdapter(connectedAdapter);
         //可用设备
-        availableAdapter = new MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter(mContext, availableDevices);
-        availableAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
+        disconnectedAdapter = new MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter(mContext, disconnectedDevices);
+        disconnectedAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                onClickBluetoothDevice(availableDevices.get(position));
+                //onClickBluetoothDevice(availableDevices.get(position));
             }
         });
-        binding.rvAvailable.setAdapter(availableAdapter);
+        binding.rvDisconnected.setAdapter(disconnectedAdapter);
     }
 
     @Override
     protected void initData() {
-        bluetoothClassic = new BluetoothClassic();
-        bluetoothClassic.init(mContext);
-        bluetoothClassic.setOnBluetoothListener(new BluetoothClassic.OnBluetoothListener() {
-            @Override
-            public void onGetBondedDevices(Set<BluetoothDevice> pairedDevices1) {
-                if (pairedDevices != null) {
-                    pairedDevices.clear();
-                    pairedDevices.addAll(pairedDevices1);
-                    pairedAdapter.notifyDataSetChanged();
-                }
-            }
+        bluetoothLE = new BluetoothLE();
+        bluetoothLE.init(mContext);
+        bluetoothLE.setOnBluetoothListener(new BluetoothLE.OnBluetoothListener() {
 
             @Override
             public void onScanResult(BluetoothDevice device) {
                 //不添加重复的mac
-                for (BluetoothDevice item : pairedDevices) {
+                for (BluetoothDevice item : connectedDevices) {
                     if (item.getAddress().equals(device.getAddress())) {
                         return;
                     }
                 }
-                for (BluetoothDevice item : availableDevices) {
+                for (BluetoothDevice item : disconnectedDevices) {
                     if (item.getAddress().equals(device.getAddress())) {
                         return;
                     }
                 }
-                availableDevices.add(device);
-                availableAdapter.notifyDataSetChanged();
+                disconnectedDevices.add(device);
+                disconnectedAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onScanStart() {
-                availableDevices.clear();
-                availableAdapter.notifyDataSetChanged();
+                disconnectedDevices.clear();
+                disconnectedAdapter.notifyDataSetChanged();
             }
 
             @Override
@@ -113,30 +107,12 @@ public class BluetoothClassicActivity extends BaseActivity {
 
             @Override
             public void onBoundStateChanged(BluetoothDevice device, int bondState) {
-                if (bondState == BluetoothDevice.BOND_BONDED) {//配对成功
-                    if (!pairedDevices.contains(device)) {
-                        pairedDevices.add(device);
-                        pairedAdapter.notifyDataSetChanged();
-                    }
-                    if (availableDevices.contains(device)) {
-                        availableDevices.remove(device);
-                        availableAdapter.notifyDataSetChanged();
-                    }
-                } else if (bondState == BluetoothDevice.BOND_NONE) {//取消配对
-                    if (pairedDevices.contains(device)) {
-                        pairedDevices.remove(device);
-                        pairedAdapter.notifyDataSetChanged();
-                    }
-                    if (!availableDevices.contains(device)) {
-                        availableDevices.add(device);
-                        availableAdapter.notifyDataSetChanged();
-                    }
-                }
+
             }
 
             @Override
             public void onConnectionStateChanged() {
-                pairedAdapter.notifyDataSetChanged();
+
             }
         });
     }
@@ -145,9 +121,9 @@ public class BluetoothClassicActivity extends BaseActivity {
     public void onDestroy() {
         super.onDestroy();
         //关闭蓝牙
-        if (bluetoothClassic != null) {
-            bluetoothClassic.release();
-            bluetoothClassic = null;
+        if (bluetoothLE != null) {
+            bluetoothLE.release();
+            bluetoothLE = null;
         }
     }
 
@@ -156,13 +132,13 @@ public class BluetoothClassicActivity extends BaseActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == BluetoothClassic.REQUEST_ENABLE_BT) {
             if (resultCode == Activity.RESULT_OK) {//蓝牙已打开
-                bluetoothClassic.scan();
+                bluetoothLE.scan();
             } else {
                 CommonUtil.toast(R.string.bluetooth_not_open);
             }
         } else if (requestCode == BluetoothClassic.REQUEST_ENABLE_GPS) {
             if (CommonUtil.isGpsOpen()) {
-                bluetoothClassic.scan();
+                bluetoothLE.scan();
             } else {
                 CommonUtil.toast(R.string.location_not_open);
             }
@@ -187,6 +163,6 @@ public class BluetoothClassicActivity extends BaseActivity {
             dialog.show();
             return;
         }
-        bluetoothClassic.connectDevice(device);//连接
+//        bluetoothLE.connectDevice(device);//连接
     }
 }

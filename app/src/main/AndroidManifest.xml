@@ -76,13 +76,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name="com.hqumath.demo.ui.bluetooth.BluetoothClassicActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|navigation|keyboard|keyboardHidden|touchscreen|fontScale"
             android:exported="false"
             android:screenOrientation="portrait" />
-
+        <activity
+            android:name="com.hqumath.demo.ui.bluetooth.BluetoothLEActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|navigation|keyboard|keyboardHidden|touchscreen|fontScale"
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

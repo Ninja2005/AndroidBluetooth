@@ -8,11 +8,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -20,14 +16,12 @@ import android.text.TextUtils;
 import com.hqumath.demo.R;
 import com.hqumath.demo.app.AppExecutors;
 import com.hqumath.demo.utils.CommonUtil;
+import com.hqumath.demo.utils.LogUtil;
 import com.hqumath.demo.utils.PermissionUtil;
 import com.yanzhenjie.permission.AndPermission;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import javax.security.auth.callback.Callback;
 
 /**
  * ****************************************************************
@@ -41,10 +35,14 @@ public class BluetoothLE {
     public static final String TAG = "BluetoothClassic";
     public static final int REQUEST_ENABLE_BT = 11;
     public static final int REQUEST_ENABLE_GPS = 12;
+    private static final int SCAN_PERIOD = 10;//扫描时长 10s
+
+    private boolean scanning;
 
     private Activity mContext;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLE.OnBluetoothListener onBluetoothListener;
+
 
     public BluetoothLE() {
 
@@ -115,52 +113,20 @@ public class BluetoothLE {
             CommonUtil.toast(R.string.location_not_open);
             return;
         }
-        //查询已配对设备
-        if (onBluetoothListener != null)
-            onBluetoothListener.onGetBondedDevices(bluetoothAdapter.getBondedDevices());
-        //扫描 大概12s,扫描中不能立即重新扫描 TODO
-        /*if (!bluetoothAdapter.isDiscovering()) {
+        //扫描中不能立即重新扫描
+        if (!scanning) {
+            //扫描一段时间后结束
+            AppExecutors.getInstance().scheduledWork().schedule(() -> {
+                scanning = false;
+                if (onBluetoothListener != null)
+                    onBluetoothListener.onScanFinish();
+                bluetoothAdapter.getBluetoothLeScanner().stopScan(scanCallback);
+            }, SCAN_PERIOD, TimeUnit.SECONDS);
+            //扫描开始
+            scanning = true;
             if (onBluetoothListener != null)
                 onBluetoothListener.onScanStart();
-            bluetoothAdapter.startDiscovery();
-        }*/
-        bluetoothAdapter.getBluetoothLeScanner().startScan(new ScanCallback() {
-
-            public void onScanResult(int callbackType, ScanResult result) {
-                super.onScanResult(callbackType, result);
-
-                result.getDevice();
-            }
-
-            public void onBatchScanResults(List<ScanResult> results) {
-                super.onBatchScanResults(results);
-
-            }
-
-            public void onScanFailed(int errorCode) {
-                super.onScanFailed(errorCode);
-            }
-        });
-
-    }
-
-    /**
-     * 连接设备。
-     * 已配对的取消配对，配对后自动连接。
-     */
-    @SuppressLint("MissingPermission")
-    public void connectDevice(BluetoothDevice device) {
-        if (bluetoothAdapter != null) {//取消扫描
-            bluetoothAdapter.cancelDiscovery();
-        }
-        CommonUtil.toast(R.string.bluetooth_is_connecting);
-        if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
-            removeBondDevice(device);//取消配对
-            AppExecutors.getInstance().scheduledWork().schedule(() -> {
-                device.createBond();//延时配对
-            }, 1, TimeUnit.SECONDS);
-        } else if (device.getBondState() == BluetoothDevice.BOND_NONE) {
-            device.createBond();//配对
+            bluetoothAdapter.getBluetoothLeScanner().startScan(scanCallback);
         }
     }
 
@@ -168,34 +134,33 @@ public class BluetoothLE {
         //mContext.unregisterReceiver(receiver);
     }
 
-    //判断设备是否连接
-    public static boolean isDeviceConnected(BluetoothDevice device) {
-        boolean isConnected = false;
-        try {
-            isConnected = (boolean) device.getClass().getMethod("isConnected").invoke(device);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return isConnected;
-    }
+    @SuppressLint("MissingPermission")
+    private ScanCallback scanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {//扫描-发现设备
+            super.onScanResult(callbackType, result);
+            BluetoothDevice device = result.getDevice();
+            if (device != null && !TextUtils.isEmpty(device.getName())) {
+                if (onBluetoothListener != null)
+                    onBluetoothListener.onScanResult(device);
+            }
+            LogUtil.d("onScanResult " + device.getName());//TODO
 
-    //解绑设备
-    public static boolean removeBondDevice(BluetoothDevice device) {
-        boolean state = false;
-        try {
-            state = (boolean) device.getClass().getMethod("removeBond").invoke(device);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return state;
-    }
+
+        /*public void onBatchScanResults(List<ScanResult> results) {
+            LogUtil.d("onBatchScanResults");//TODO
+        }
+
+        public void onScanFailed(int errorCode) {
+            LogUtil.d("onScanFailed");
+        }*/
+    };
 
     /**
      * 回调
      */
     public interface OnBluetoothListener {
-        void onGetBondedDevices(Set<BluetoothDevice> pairedDevices);//刷新已配对列表
-
         void onScanResult(BluetoothDevice device);//扫描
 
         void onScanStart();
