@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.hqumath.demo.R;
@@ -21,6 +22,7 @@ import com.hqumath.demo.utils.ByteUtil;
 import com.hqumath.demo.utils.CommonUtil;
 import com.hqumath.demo.utils.LogUtil;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,15 +51,24 @@ public class BluetoothLEActivity extends BaseActivity {
 
     @Override
     protected void initListener() {
-        binding.btnScan.setOnClickListener(v -> {
+        binding.btnScan.setOnClickListener(v -> {//扫描
             showLoading();
             bluetoothLE.scanWithPermission();
         });
-        //已连接
-        binding.llConnectDevice.setOnClickListener(v -> {
+        binding.llConnectDevice.setOnClickListener(v -> {//已连接设备点击
             onClickBluetoothDevice(connectedDevice);
         });
-        //未连接设备
+        binding.btnSend.setOnClickListener(v -> {//写入数据
+            String content = binding.edtSendData.getText().toString();
+            if (TextUtils.isEmpty(content)) {
+                CommonUtil.toast("请输入数据");
+                return;
+            }
+            byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+            if (bluetoothLE != null)
+                bluetoothLE.write(bytes);
+        });
+        //未连接设备列表
         disconnectedAdapter = new MyRecyclerAdapters.BluetoothLEDeviceRecyclerAdapter(mContext, disconnectedDevices);
         disconnectedAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
             @Override
@@ -148,9 +159,12 @@ public class BluetoothLEActivity extends BaseActivity {
                 //LogUtil.d(BluetoothLE.TAG, "onRead: " + ByteUtil.bytesToHexWithSpace(data));
                 binding.getRoot().post(() -> {
                     binding.edtReceiveData.setText(ByteUtil.bytesToHexWithSpace(data));
+                    /*String msg = new String(data, StandardCharsets.UTF_8);
+                    binding.edtReceiveData.setText(msg);*/
                 });
             }
         });
+        //binding.edtSendData.setText("root\n");
     }
 
     @Override
