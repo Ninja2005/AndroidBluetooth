@@ -8,7 +8,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.ScanCallback;
@@ -69,6 +68,7 @@ public class BluetoothLE {
         }
     }
 
+    @SuppressLint("MissingPermission")
     public void release() {
         disconnectDevice();
     }
@@ -158,15 +158,22 @@ public class BluetoothLE {
     @SuppressLint("MissingPermission")
     public void connectDevice(BluetoothDevice device) {
         stopScan();
-        CommonUtil.toast(R.string.bluetooth_is_connecting);
+        //CommonUtil.toast(R.string.bluetooth_is_connecting);
         writeCharacteristic = null;
-        bluetoothGatt = device.connectGatt(mContext, false, gattCallback);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            bluetoothGatt = device.connectGatt(mContext, false, gattCallback, BluetoothDevice.TRANSPORT_LE);
+        } else {
+            bluetoothGatt = device.connectGatt(mContext, false, gattCallback);
+        }
     }
 
     @SuppressLint("MissingPermission")
     public void disconnectDevice() {
-        if (bluetoothGatt != null)
+        stopScan();
+        if (bluetoothGatt != null) {
             bluetoothGatt.disconnect();
+            bluetoothGatt = null;
+        }
     }
 
     /**
@@ -213,14 +220,19 @@ public class BluetoothLE {
     BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
         //连接状态变化 连接中/已连接/断开中/已断开
         @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status,
-                                            int newState) {
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
             LogUtil.d(TAG, "onConnectionStateChange, status=" + status + " newState=" + newState);
             if (onBluetoothListener != null)
                 onBluetoothListener.onConnectionStateChanged(gatt, status, newState);
-            if (newState == BluetoothGatt.STATE_CONNECTED) {
-                gatt.discoverServices();//去发现服务
+            switch (newState) {
+                case BluetoothGatt.STATE_CONNECTED:
+                    gatt.discoverServices();//去发现服务
+                    break;
+                case BluetoothGatt.STATE_DISCONNECTED:
+                    gatt.close();
+                    bluetoothGatt = null;
+                    break;
             }
         }
 
@@ -238,7 +250,8 @@ public class BluetoothLE {
                         for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {//特征
                             if (TextUtils.equals(characteristic.getUuid().toString(), CHARACTERISTIC_UUID_HC04_HC08_NOTIFY)) {
                                 readCharacteristic = characteristic;
-                            } else if (TextUtils.equals(characteristic.getUuid().toString(), CHARACTERISTIC_UUID_HC04_HC08_WRITE)) {
+                            }
+                            if (TextUtils.equals(characteristic.getUuid().toString(), CHARACTERISTIC_UUID_HC04_HC08_WRITE)) {
                                 writeCharacteristic = characteristic;
                             }
                         }
@@ -246,17 +259,14 @@ public class BluetoothLE {
                     }
                 }
             }
-            //打开读通知
+            //打开通知通道
             if (readCharacteristic != null) {
                 gatt.setCharacteristicNotification(readCharacteristic, true);
-            }
-            //重新设置写特征的描述
-            if (writeCharacteristic != null) {
-                List<BluetoothGattDescriptor> descriptors = writeCharacteristic.getDescriptors();
-                for (BluetoothGattDescriptor descriptor : descriptors) {
+                //重新写入描述？
+                /*for (BluetoothGattDescriptor descriptor : readCharacteristic.getDescriptors()) {
                     descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                     gatt.writeDescriptor(descriptor);
-                }
+                }*/
             }
             //打开读写通道结果
             if (onBluetoothListener != null)

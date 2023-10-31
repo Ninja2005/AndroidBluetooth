@@ -16,6 +16,7 @@ import com.hqumath.demo.base.BaseRecyclerAdapter;
 import com.hqumath.demo.bluetooth.BluetoothClassic;
 import com.hqumath.demo.bluetooth.BluetoothLE;
 import com.hqumath.demo.databinding.ActivityBluetoothLeBinding;
+import com.hqumath.demo.dialog.DialogUtil;
 import com.hqumath.demo.utils.ByteUtil;
 import com.hqumath.demo.utils.CommonUtil;
 import com.hqumath.demo.utils.LogUtil;
@@ -34,11 +35,11 @@ import java.util.List;
 public class BluetoothLEActivity extends BaseActivity {
     private ActivityBluetoothLeBinding binding;
     private BluetoothLE bluetoothLE;//低功耗蓝牙
-    private MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter connectedAdapter;
-    private MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter disconnectedAdapter;
+    private MyRecyclerAdapters.BluetoothLEDeviceRecyclerAdapter disconnectedAdapter;
 
-    private List<BluetoothDevice> connectedDevices = new ArrayList<>();//已配对设备列表
-    private List<BluetoothDevice> disconnectedDevices = new ArrayList<>();//可用设备列表
+    private BluetoothDevice connectedDevice;//已连接设备
+    private List<BluetoothDevice> disconnectedDevices = new ArrayList<>();//未连接设备列表
+    private BluetoothDevice waitConnectDevice;//断开旧设备后，待连接的新设备
 
     @Override
     protected View initContentView(Bundle savedInstanceState) {
@@ -52,18 +53,12 @@ public class BluetoothLEActivity extends BaseActivity {
             showLoading();
             bluetoothLE.scanWithPermission();
         });
-
-        //已配对设备
-        connectedAdapter = new MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter(mContext, connectedDevices);
-        connectedAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                onClickBluetoothDevice(connectedDevices.get(position));
-            }
+        //已连接
+        binding.llConnectDevice.setOnClickListener(v -> {
+            onClickBluetoothDevice(connectedDevice);
         });
-        binding.rvConnected.setAdapter(connectedAdapter);
-        //可用设备
-        disconnectedAdapter = new MyRecyclerAdapters.BluetoothDeviceRecyclerAdapter(mContext, disconnectedDevices);
+        //未连接设备
+        disconnectedAdapter = new MyRecyclerAdapters.BluetoothLEDeviceRecyclerAdapter(mContext, disconnectedDevices);
         disconnectedAdapter.setOnItemClickListener(new BaseRecyclerAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
@@ -81,11 +76,9 @@ public class BluetoothLEActivity extends BaseActivity {
 
             @Override
             public void onScanResult(BluetoothDevice device) {
-                //不添加重复的mac TODO
-                for (BluetoothDevice item : connectedDevices) {
-                    if (item.getAddress().equals(device.getAddress())) {
-                        return;
-                    }
+                //不添加重复的mac
+                if (connectedDevice != null && connectedDevice.getAddress().equals(device.getAddress())) {
+                    return;
                 }
                 for (BluetoothDevice item : disconnectedDevices) {
                     if (item.getAddress().equals(device.getAddress())) {
@@ -109,23 +102,45 @@ public class BluetoothLEActivity extends BaseActivity {
 
             @Override
             @SuppressLint("MissingPermission")
-            public void onConnectionStateChanged(BluetoothGatt gatt, int status, int newState) {
-                switch (newState) {
-                    case BluetoothProfile.STATE_CONNECTING:
-                        break;
-                    case BluetoothProfile.STATE_CONNECTED:
-                        break;
-                    case BluetoothProfile.STATE_DISCONNECTING:
-                        break;
-                    case BluetoothProfile.STATE_DISCONNECTED:
-                        //TODO 断开连接更新UI
-                        break;
-                }
+            public void onConnectionStateChanged(BluetoothGatt gatt, int status, int newState) {//workTread
+                binding.getRoot().post(() -> {
+                    switch (newState) {
+                        case BluetoothProfile.STATE_CONNECTING:
+                        case BluetoothProfile.STATE_DISCONNECTING:
+                            showLoading();
+                            break;
+                        case BluetoothProfile.STATE_CONNECTED:
+                            dismissLoading();
+                            BluetoothDevice device = gatt.getDevice();
+                            //未连接设备列表 => 已连接设备
+                            disconnectedDevices.remove(device);
+                            connectedDevice = device;
+                            disconnectedAdapter.notifyDataSetChanged();
+                            binding.llConnectDevice.setVisibility(View.VISIBLE);
+                            binding.tvConnectDeviceName.setText(device.getName());
+                            binding.tvConnectDeviceAddress.setText(device.getAddress());
+                            break;
+                        case BluetoothProfile.STATE_DISCONNECTED:
+                            dismissLoading();
+                            BluetoothDevice device2 = gatt.getDevice();
+                            //已连接设备 => 未连接设备列表
+                            if (connectedDevice == device2) {
+                                connectedDevice = null;
+                                disconnectedDevices.add(device2);
+                                disconnectedAdapter.notifyDataSetChanged();
+                                binding.llConnectDevice.setVisibility(View.GONE);
+                            }
+                            if (waitConnectDevice != null) {
+                                bluetoothLE.connectDevice(waitConnectDevice);
+                            }
+                            break;
+                    }
+                });
             }
 
             @Override
             public void onServicesDiscovered(boolean result) {
-                //TODO 发现服务成功或失败
+                LogUtil.d(BluetoothLE.TAG, "发现服务" + (result ? "成功" : "失败"));
             }
 
             @Override
@@ -169,17 +184,23 @@ public class BluetoothLEActivity extends BaseActivity {
      * @param device
      */
     private void onClickBluetoothDevice(BluetoothDevice device) {
-        /*if (BluetoothClassic.isDeviceConnected(device)) {//已连接，提示断开连接 TODO
+        if (device == connectedDevice) {//点击已连接设备，提示断开连接
             DialogUtil dialog = new DialogUtil(mContext);
             dialog.setTitle(R.string.tips);
             dialog.setMessage(R.string.bluetooth_disconnect);
             dialog.setTwoConfirmBtn(R.string.button_ok, v1 -> {
-                BluetoothClassic.removeBondDevice(device);
+                waitConnectDevice = null;
+                bluetoothLE.disconnectDevice();
             });
             dialog.setTwoCancelBtn(R.string.button_cancel, null);
             dialog.show();
-            return;
-        }*/
-        bluetoothLE.connectDevice(device);//连接
+        } else {//点击未连接设备列表
+            if (connectedDevice == null) {//连接新设备
+                bluetoothLE.connectDevice(device);
+            } else {//先断开旧设备，再连接新设备
+                waitConnectDevice = device;
+                bluetoothLE.disconnectDevice();
+            }
+        }
     }
 }

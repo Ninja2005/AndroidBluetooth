@@ -45,4 +45,18 @@ public class MyRecyclerAdapters {
             holder.setText(R.id.tvState, isConnected ? "已连接" : "");
         }
     }
+
+    @SuppressLint("MissingPermission")
+    public static class BluetoothLEDeviceRecyclerAdapter extends BaseRecyclerAdapter<BluetoothDevice> {
+        public BluetoothLEDeviceRecyclerAdapter(Context context, List<BluetoothDevice> mData) {
+            super(context, mData, R.layout.recycler_item_bluetooth_device);
+        }
+
+        @Override
+        public void convert(BaseRecyclerViewHolder holder, int position) {
+            BluetoothDevice data = mData.get(position);
+            holder.setText(R.id.tvName, data.getName());
+            holder.setText(R.id.tvAddress, data.getAddress());
+        }
+    }
 }
