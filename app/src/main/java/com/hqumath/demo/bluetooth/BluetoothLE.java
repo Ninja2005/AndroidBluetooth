@@ -289,7 +289,7 @@ public class BluetoothLE {
             LogUtil.d(TAG, "onCharacteristicWrite: " + ByteUtil.bytesToHexWithSpace(data));
         }
 
-        //读取通知数据回调
+        //通知数据回调
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
             //LogUtil.d("onCharacteristicWrite: " + ByteUtil.bytesToHexWithSpace(characteristic.getValue()));

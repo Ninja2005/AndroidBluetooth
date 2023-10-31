@@ -145,7 +145,10 @@ public class BluetoothLEActivity extends BaseActivity {
 
             @Override
             public void onRead(byte[] data) {
-                LogUtil.d(BluetoothLE.TAG, "onRead: " + ByteUtil.bytesToHexWithSpace(data));
+                //LogUtil.d(BluetoothLE.TAG, "onRead: " + ByteUtil.bytesToHexWithSpace(data));
+                binding.getRoot().post(() -> {
+                    binding.edtReceiveData.setText(ByteUtil.bytesToHexWithSpace(data));
+                });
             }
         });
     }
