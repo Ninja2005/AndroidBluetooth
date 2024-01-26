@@ -1,9 +1,9 @@
 # AndroidDemo
 经典蓝牙和低功耗蓝牙学习
 
-## 说明文档见博客
+## 说明文档
 
-[掘金](https://juejin.cn/post/7328273660790276148)
+[Android系统蓝牙的使用](https://juejin.cn/post/7328273660790276148)
 
 ## 效果图
 
