@@ -1,36 +1,4 @@
-
-<!-- PROJECT LOGO -->
-<br />
-<p align="center">
-  <a href="https://github.com/dudor/BookmarkHub">
-    <img src="images/icon128.png" alt="BookmarkHub" >
-  </a>
-
-  <h1 align="center">BookmarkHub</h1>
-  <p align="center">
-    BookmarkHub is a browser plug-in that can synchronize your bookmarks between different browsers.
-    <br />
-    <a href="https://github.com/dudor/BookmarkHub/issues">Feedback</a>
-    ·
-    <a href="/README_cn.md">简体中文</a>
-    ·
-    <a href="/README.md">English</a>
-  </p>
-</p>
-
-<!-- TABLE OF CONTENTS -->
-<details open="open">
-  <summary><h2 style="display: inline-block">Table of Contents</h2></summary>
-  <ol>
-    <li><a href="#about-the-project">About The Project</a></li>
-    <li><a href="#features">Features</a></li>
-    <li><a href="#installation">Installation</a></li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ol>
-</details>
+提交测试
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project 
