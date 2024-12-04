@@ -14,7 +14,7 @@
 ### 1.2 蓝牙堆栈的常规结构
 
 蓝牙应用通过 Binder 与蓝牙进程进行通信。蓝牙进程使用 JNI 与蓝牙堆栈通信，并向开发者提供对各种蓝牙配置文件的访问权限。如下图：
-![AndroidBluetooth](/images/AndroidBluetooth1.awebp)
+![AndroidBluetooth](img/2.gif)
 
 ## 2.经典蓝牙
 
@@ -164,4 +164,4 @@ bluetoothGatt.writeCharacteristic(writeCharacteristic);
 
 ## 4.效果图
 
-![1.gif](img/1.gif)
+![效果图](img/1.gif)
